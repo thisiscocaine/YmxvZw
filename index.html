@@ -1,0 +1,1617 @@
+
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="This is the official website of Aryan 'arisksec' Aryal.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="arisksec">
+    <meta property="og:title" content="arisksec">
+    <meta property="og:description" content="This is the official website of Aryan 'arisksec' Aryal.">
+    <meta property="og:image" content="https://cdn.aryanaryal.com.np/626c6f672d617279616e/70686f746f73/6c6f676f73/black-logo.png">
+    <meta property="og:url" content="https://www.aryanaryal.com.np/">
+    <link rel="canonical" href="https://www.aryanaryal.com.np/">
+    <link rel="icon" type="image/x-icon" href="https://cdn.aryanaryal.com.np/626c6f672d617279616e/70686f746f73/6c6f676f73/favicon.png">
+    <title>arisksec</title>
+
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5XL9QV7R');</script>
+    <!-- End Google Tag Manager -->
+    
+<style>
+        :root {
+    --background: #000000;
+    --text: #FFFFFF;
+    --prompt: #00FF00;
+    --accent: #FF0000;
+    --header: #D3D3D3;
+    --scrollbar: #555555;
+    --scrollbar-track: #1A1A1A;
+}
+
+[data-theme="light"] {
+    --background: #74001b;
+    --text: #000000;
+    --prompt: #008000;
+    --accent: #FF0000;
+    --header: #E0E0E0;
+    --scrollbar: #888888;
+    --scrollbar-track: #F0F0F0;
+}
+
+body {
+    background: linear-gradient(135deg, #3b5998 0%, #8e44ad 100%);
+    animation: appleGradient 15s ease infinite;
+    color: var(--text);
+    font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
+    height: 100vh;
+    margin: 0;
+    padding: 15px;
+    overflow: auto;
+    position: relative;
+    box-sizing: border-box;
+}
+
+@keyframes appleGradient {
+    0% { background: linear-gradient(135deg, #1250d4 0%, #8517b4 100%); }
+    33% { background: linear-gradient(135deg, #8517b4 0%, #ad1538 100%); }
+    66% { background: linear-gradient(135deg, #ad1538 0%, #1250d4 100%); }
+    100% { background: linear-gradient(135deg, #1250d4 0%, #8517b4 100%); }
+}
+
+::selection {
+    color: var(--background);
+    background-color: var(--text);
+}
+
+.terminal {
+    width: 80%;
+    max-width: 900px;
+    height: 500px;
+    background: var(--background);
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 50px;
+    left: 50px;
+    z-index: 1;
+    touch-action: none;
+    box-sizing: border-box;
+    font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+.terminal.minimized .terminal-body {
+    display: none;
+}
+
+.terminal.maximized {
+    width: calc(100% - 20px);
+    height: calc(100% - 20px);
+    max-width: none;
+    top: 10px;
+    left: 10px;
+}
+
+.terminal-header {
+    background: var(--header);
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #B0B0B0;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    cursor: move;
+    user-select: none;
+}
+
+.terminal-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.terminal-button {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+}
+
+.button-close { background: #FF5F56; }
+.button-minimize { background: #FFBD2E; }
+.button-maximize { background: #27C93F; }
+
+.terminal-title {
+    margin: 0 auto;
+    font-size: 0.9rem;
+    color: #333333;
+    font-weight: bold;
+}
+
+.terminal-body {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    color: var(--text);
+    font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+.prompt-line {
+    display: flex;
+    margin-bottom: 8px;
+    align-items: center;
+}
+
+.prompt-user {
+    color: var(--prompt);
+    margin-right: 5px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.prompt-input {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
+    font-size: 0.9rem;
+    flex: 1;
+    outline: none;
+    caret-color: var(--accent);
+}
+
+.command-output {
+    margin-bottom: 1px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+}
+
+.terminal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.terminal-body::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+}
+
+.terminal-body::-webkit-scrollbar-thumb {
+    background: var(--scrollbar);
+    border-radius: 4px;
+}
+
+.hidden-input {
+    opacity: 0;
+    position: absolute;
+    left: -9999px;
+    width: 100%;
+    height: 1.2em;
+    caret-color: var(--accent);
+    background: transparent;
+    border: none;
+    color: transparent;
+    resize: none;
+    font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
+    font-size: 0.9rem;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background: var(--accent);
+    animation: blink 1s step-end infinite;
+    vertical-align: middle;
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}
+
+.typer {
+    display: inline-block;
+    min-width: 10%;
+    pointer-events: none;
+}
+
+.liner {
+    margin-bottom: 10px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+b {
+    font-weight: bold;
+    text-decoration: underline;
+    color: var(--text);
+}
+
+.liner.password::before {
+    content: "Password: ";
+    color: var(--accent);
+}
+
+p {
+    display: block;
+    margin: 0;
+    overflow: hidden;
+    white-space: pre-wrap;
+    animation: typing 0.5s steps(30, end);
+    font-size: 0.9rem;
+}
+
+.no-animation {
+    animation: none;
+}
+
+.margin {
+    margin-left: 20px;
+}
+
+.index { color: #00FF00; }
+.color2 { color: #00FFFF; }
+.command { color: #00FFFF; }
+.error { color: var(--accent); }
+.white { color: var(--text); }
+.inherit, a { color: #87CEEB; }
+a { text-decoration: none; }
+a:hover { background: var(--accent); color: var(--background); }
+a:focus { outline: 0; }
+
+.banner-logo {
+    display: block;
+    margin: 0 auto 15px auto;
+    width: 100px;
+    height: auto;
+}
+
+.resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    background: var(--scrollbar);
+    cursor: nwse-resize;
+    z-index: 10;
+}
+
+.terminal.maximized .resize-handle {
+    display: none;
+}
+
+.blog-content {
+    line-height: 1.6;
+    margin-top: 10px;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    font-size: 0.9rem;
+}
+
+.blog-content h1 {
+    font-size: 1.8rem;
+    color: var(--prompt);
+    margin: 0.8em 0 0.4em;
+}
+
+.blog-content h2 {
+    font-size: 1.5rem;
+    color: var(--prompt);
+    margin: 0.7em 0 0.3em;
+}
+
+.blog-content h3 {
+    font-size: 1.3rem;
+    color: var(--prompt);
+    margin: 0.6em 0 0.3em;
+}
+
+.blog-content h4, .blog-content h5, .blog-content h6 {
+    font-size: 1.1rem;
+    color: var(--prompt);
+    margin: 0.5em 0 0.2em;
+}
+
+.blog-content p {
+    margin: 0.6em 0;
+    line-height: 1.6;
+    font-size: 0.9rem;
+}
+
+.blog-content a {
+    color: var(--text);
+    text-decoration: underline;
+}
+
+.blog-content a:hover {
+    background: var(--accent);
+    color: var(--background);
+}
+
+.blog-content ul, .blog-content ol {
+    margin: 0.6em 0;
+    padding-left: 20px;
+}
+
+.blog-content li {
+    margin: 0.3em 0;
+    line-height: 1.5;
+}
+
+.blog-content img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0.8em auto;
+    border-radius: 4px;
+}
+
+.blog-content code {
+    background: var(--scrollbar-track);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 0.85rem;
+}
+
+.blog-content pre {
+    background: var(--scrollbar-track);
+    padding: 10px;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 0.8em 0;
+}
+
+.blog-content pre code {
+    background: none;
+    padding: 0;
+}
+
+.blog-content blockquote {
+    border-left: 3px solid var(--prompt);
+    padding-left: 10px;
+    margin: 0.8em 0;
+    color: var(--text);
+    font-style: italic;
+}
+
+/* Ultra-wide screens */
+@media (min-width: 3840px) {
+    body { 
+        padding: 20px; 
+        font-size: 1.3rem;
+    }
+    .terminal {
+        max-width: 1400px;
+        height: 800px;
+        font-size: 1.3rem;
+        border-radius: 8px;
+    }
+    .terminal-header { padding: 12px 20px; }
+    .terminal-title { font-size: 1.2rem; }
+    .terminal-button { width: 16px; height: 16px; }
+    .terminal-body { 
+        padding: 25px; 
+        font-size: 1.3rem;
+    }
+    .prompt-user, .prompt-input, p { font-size: 1.3rem; }
+    .hidden-input { 
+        height: 1.6em; 
+        font-size: 1.3rem;
+    }
+    .banner-logo { width: 180px; }
+    .command-output { line-height: 1.6; }
+    .resize-handle { width: 18px; height: 18px; }
+    .terminal-body::-webkit-scrollbar { width: 10px; }
+    .blog-content { font-size: 1.3rem; }
+    .blog-content h1 { font-size: 2.4rem; }
+    .blog-content h2 { font-size: 2rem; }
+    .blog-content h3 { font-size: 1.8rem; }
+    .blog-content h4, .blog-content h5, .blog-content h6 { font-size: 1.5rem; }
+    .blog-content p { font-size: 1.3rem; }
+    .blog-content li { font-size: 1.3rem; }
+    .blog-content code { font-size: 1.2rem; }
+    .blog-content img { max-width: 80%; }
+}
+
+/* High-resolution desktops */
+@media (max-width: 2560px) {
+    body { 
+        padding: 15px; 
+        font-size: 1.1rem;
+    }
+    .terminal {
+        width: 85%;
+        max-width: 1200px;
+        height: 700px;
+        font-size: 1.1rem;
+    }
+    .terminal-header { padding: 8px 16px; }
+    . .terminal-title { font-size: 1rem; }
+    .terminal-button { width: 14px; height: 14px; }
+    .terminal-body { 
+        padding: 20px; 
+        font-size: 1.1rem;
+    }
+    .prompt-user, .prompt-input, p { font-size: 1.1rem; }
+    .hidden-input { 
+        height: 1.4em; 
+        font-size: 1.1rem;
+    }
+    .banner-logo { width: 140px; }
+    .command-output { line-height: 1.5; }
+    .resize-handle { width: 14px; height: 14px; }
+    .blog-content { font-size: 1.1rem; }
+    .blog-content h1 { font-size: 2.2rem; }
+    .blog-content h2 { font-size: 1.8rem; }
+    .blog-content h3 { font-size: 1.6rem; }
+    .blog-content h4, .blog-content h5, .blog-content h6 { font-size: 1.4rem; }
+    .blog-content p { font-size: 1.1rem; }
+    .blog-content li { font-size: 1.1rem; }
+    .blog-content code { font-size: 1rem; }
+    .blog-content img { max-width: 85%; }
+}
+
+/* Laptops */
+@media (max-width: 1440px) {
+    body { 
+        padding: 12px; 
+        font-size: 1rem;
+    }
+    .terminal {
+    width: 90%;
+    height: 80vh;
+    min-height: 500px;
+    font-size: 1rem;
+}
+.terminal-header { padding: 6px 12px; }
+.terminal-title { font-size: 0.9rem; }
+.terminal-button { width: 12px; height: 12px; }
+.terminal-body { 
+    padding: 15px; 
+    font-size: 1rem;
+}
+.prompt-user, .prompt-input, p { font-size: 1rem; }
+.hidden-input { 
+    height: 1.2em; 
+    font-size: 1rem;
+}
+.banner-logo { width: 120px; }
+.command-output { line-height: 1.4; }
+.resize-handle { width: 12px; height: 12px; }
+.blog-content { font-size: 1rem; }
+.blog-content h1 { font-size: 2rem; }
+.blog-content h2 { font-size: 1.6rem; }
+.blog-content h3 { font-size: 1.4rem; }
+.blog-content h4, .blog-content h5, .blog-content h6 { font-size: 1.2rem; }
+.blog-content p { font-size: 1rem; }
+.blog-content li { font-size: 1rem; }
+.blog-content code { font-size: 0.9rem; }
+.blog-content img { max-width: 90%; }
+}
+
+/* Tablets */
+@media (max-width: 1024px) {
+    body { 
+        padding: 10px; 
+        font-size: 0.95rem;
+    }
+    .terminal {
+        width: 95%;
+        height: 85vh;
+        min-height: 450px;
+        font-size: 0.95rem;
+    }
+    .terminal-header { padding: 5px 10px; }
+    .terminal-title { font-size: 0.85rem; }
+    .terminal-button { width: 11px; height: 11px; }
+    .terminal-body { 
+        padding: 12px; 
+        font-size: 0.95rem;
+    }
+    .prompt-user, .prompt-input, p { font-size: 0.95rem; }
+    .hidden-input { 
+        height: 1.1em; 
+        font-size: 0.95rem;
+    }
+    .banner-logo { width: 100px; }
+    .command-output { line-height: 1.4; }
+    .resize-handle { width: 10px; height: 10px; }
+    .terminal-body::-webkit-scrollbar { width: 6px; }
+    .terminal-body::-webkit-scrollbar-thumb { border-radius: 3px; }
+    .blog-content { font-size: 0.95rem; }
+    .blog-content h1 { font-size: 1.8rem; }
+    .blog-content h2 { font-size: 1.5rem; }
+    .blog-content h3 { font-size: 1.3rem; }
+    .blog-content h4, .blog-content h5, .blog-content h6 { font-size: 1.1rem; }
+    .blog-content p { font-size: 0.95rem; }
+    .blog-content li { font-size: 0.95rem; }
+    .blog-content code { font-size: 0.85rem; }
+    .blog-content img { max-width: 95%; }
+}
+
+/* Smaller tablets */
+@media (max-width: 768px) {
+    body { 
+        padding: 8px; 
+        font-size: 0.9rem;
+    }
+    .terminal {
+        width: 98%;
+        max-width: 100%;
+        height: 80vh;
+        min-height: 400px;
+        font-size: 0.9rem;
+    }
+    .terminal.maximized {
+        width: calc(100% - 16px);
+        height: calc(100% - 16px);
+        top: 8px;
+        left: 8px;
+    }
+    .terminal-header { padding: 4px 8px; }
+    .terminal-title { font-size: 0.8rem; }
+    .terminal-button { width: 10px; height: 10px; }
+    .terminal-body { 
+        padding: 10px; 
+        font-size: 0.9rem;
+    }
+    .prompt-user, .prompt-input, p { font-size: 0.9rem; }
+    .hidden-input { 
+        height: 1em; 
+        font-size: 0.9rem;
+    }
+    .banner-logo { width: 90px; }
+    .command-output { line-height: 1.3; }
+    .resize-handle { width: 10px; height: 10px; }
+    .blog-content { font-size: 0.9rem; }
+    .blog-content h1 { font-size: 1.6rem; }
+    .blog-content h2 { font-size: 1.4rem; }
+    .blog-content h3 { font-size: 1.2rem; }
+    .blog-content h4, .blog-content h5, .blog-content h6 { font-size: 1rem; }
+    .blog-content p { font-size: 0.9rem; }
+    .blog-content li { font-size: 0.9rem; }
+    .blog-content code { font-size: 0.8rem; }
+    .blog-content img { max-width: 100%; }
+}
+
+/* Mobile devices */
+@media (max-width: 600px) {
+    body { 
+        padding: 6px; 
+        font-size: 0.85rem;
+    }
+    .terminal {
+        width: 100%;
+        height: 85vh;
+        min-height: 350px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+    }
+    .terminal.maximized {
+        width: calc(100% - 12px);
+        height: calc(100% - 12px);
+        top: 6px;
+        left: 6px;
+    }
+    .terminal-header { padding: 4px 8px; }
+    .terminal-title { font-size: 0.75rem; }
+    .terminal-button { width: 9px; height: 9px; }
+    .terminal-body { 
+        padding: 8px; 
+        font-size: 0.85rem;
+    }
+    .prompt-user, .prompt-input, p { font-size: 0.85rem; }
+    .hidden-input { 
+        height: 0.9em; 
+        font-size: 0.85rem;
+    }
+    .banner-logo { width: 80px; }
+    .command-output {
+        line-height: 1.25;
+        white-space: normal;
+        word-break: break-all;
+    }
+    .margin { margin-left: 10px; }
+    .terminal-body::-webkit-scrollbar { width: 5px; }
+    .resize-handle { width: 8px; height: 8px; }
+    a:hover { background: transparent; text-decoration: underline; }
+    .blog-content { font-size: 0.85rem; }
+    .blog-content h1 { font-size: 1.5rem; }
+    .blog-content h2 { font-size: 1.3rem; }
+    .blog-content h3 { font-size: 1.1rem; }
+    .blog-content h4, .blog-content h5, .blog-content h6 { font-size: 0.95rem; }
+    .blog-content p { font-size: 0.85rem; }
+    .blog-content li { font-size: 0.85rem; }
+    .blog-content code { font-size: 0.75rem; }
+    .blog-content img { max-width: 100%; }
+}
+
+/* Smaller mobile devices */
+@media (max-width: 480px) {
+    body { 
+        padding: 5px; 
+        align-items: flex-start; 
+        font-size: 0.8rem;
+    }
+    .terminal {
+        width: 100%;
+        height: 90vh;
+        min-height: 300px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+    }
+    .terminal.maximized {
+        width: calc(100% - 10px);
+        height: calc(100% - 10px);
+        top: 5px;
+        left: 5px;
+    }
+    .terminal-header { padding: 3px 6px; }
+    .terminal-title { font-size: 0.7rem; }
+    .terminal-button { width: 8px; height: 8px; }
+    .terminal-body { 
+        padding: 6px; 
+        font-size: 0.8rem;
+    }
+    .prompt-user, .prompt-input, p { font-size: 0.8rem; }
+    .hidden-input { 
+        height: 0.8em; 
+        font-size: 0.8rem;
+    }
+    .banner-logo { width: 70px; }
+    .command-output {
+        line-height: 1.2;
+        white-space: normal;
+        word-break: break-all;
+    }
+    .margin { margin-left: 8px; }
+    .terminal-body::-webkit-scrollbar { width: 5px; }
+    .terminal-body::-webkit-scrollbar-thumb { border-radius: 2px; }
+    .resize-handle { width: 8px; height: 8px; }
+    .blog-content { font-size: 0.8rem; }
+    .blog-content h1 { font-size: 1.4rem; }
+    .blog-content h2 { font-size: 1.2rem; }
+    .blog-content h3 { font-size: 1rem; }
+    .blog-content h4, .blog-content h5, .blog-content h6 { font-size: 0.9rem; }
+    .blog-content p { font-size: 0.8rem; }
+    .blog-content li { font-size: 0.8rem; }
+    .blog-content code { font-size: 0.7rem; }
+    .blog-content img { max-width: 100%; }
+}
+
+/* Very small mobile devices */
+@media (max-width: 360px) {
+    body { 
+        padding: 4px; 
+        font-size: 0.75rem;
+    }
+    .terminal {
+        width: 100%;
+        height: 92vh;
+        min-height: 280px;
+        border-radius: 3px;
+        font-size: 0.75rem;
+    }
+    .terminal.maximized {
+        width: calc(100% - 8px);
+        height: calc(100% - 8px);
+        top: 4px;
+        left: 4px;
+    }
+    .terminal-header { padding: 3px 6px; }
+    .terminal-title { font-size: 0.65rem; }
+    .terminal-button { width: 7px; height: 7px; }
+    .terminal-body { 
+        padding: 6px; 
+        font-size: 0.75rem;
+    }
+    .prompt-user, .prompt-input, p { font-size: 0.75rem; }
+    .hidden-input { 
+        height: 0.75em; 
+        font-size: 0.75rem;
+    }
+    .banner-logo { width: 60px; }
+    .command-output {
+        line-height: 1.15;
+        white-space: normal;
+        word-break: break-all;
+    }
+    .margin { margin-left: 6px; }
+    .terminal-body::-webkit-scrollbar { width: 4px; }
+    .resize-handle { width: 7px; height: 7px; }
+    .blog-content { font-size: 0.75rem; }
+    .blog-content h1 { font-size: 1.3rem; }
+    .blog-content h2 { font-size: 1.1rem; }
+    .blog-content h3 { font-size: 0.95rem; }
+    .blog-content h4, .blog-content h5, .blog-content h6 { font-size: 0.85rem; }
+    .blog-content p { font-size: 0.75rem; }
+    .blog-content li { font-size: 0.75rem; }
+    .blog-content code { font-size: 0.65rem; }
+    .blog-content img { max-width: 100%; }
+}
+
+/* Micro screens */
+@media (max-width: 320px) {
+    body { 
+        padding: 3px; 
+        font-size: 0.7rem;
+    }
+    .terminal {
+        width: 100%;
+        height: 95vh;
+        min-height: 260px;
+        border-radius: 3px;
+        font-size: 0.7rem;
+    }
+    .terminal.maximized {
+        width: calc(100% - 6px);
+        height: calc(100% - 6px);
+        top: 3px;
+        left: 3px;
+    }
+    .terminal-header { padding: 2px 5px; }
+    .terminal-title { font-size: 0.6rem; }
+    .terminal-button { width: 6px; height: 6px; }
+    .terminal-body { 
+        padding: 5px; 
+        font-size: 0.7rem;
+    }
+    .prompt-user, .prompt-input, p { font-size: 0.7rem; }
+    .hidden-input { 
+        height: 0.7em; 
+        font-size: 0.7rem;
+    }
+    .banner-logo { width: 50px; }
+    .command-output {
+        line-height: 1.1;
+        white-space: normal;
+        word-break: break-all;
+    }
+    .margin { margin-left: 5px; }
+    .terminal-body::-webkit-scrollbar { width: 4px; }
+    .terminal-body::-webkit-scrollbar-thumb { border-radius: 2px; }
+    .resize-handle { width: 6px; height: 6px; }
+    .blog-content { font-size: 0.7rem; }
+    .blog-content h1 { font-size: 1.2rem; }
+    .blog-content h2 { font-size: 1rem; }
+    .blog-content h3 { font-size: 0.9rem; }
+    .blog-content h4, .blog-content h5, .blog-content h6 { font-size: 0.8rem; }
+    .blog-content p { font-size: 0.7rem; }
+    .blog-content li { font-size: 0.7rem; }
+    .blog-content code { font-size: 0.6rem; }
+    .blog-content img { max-width: 100%; }
+}
+
+/* Extra micro screens */
+@media (max-width: 240px) {
+    body { 
+        padding: 2px; 
+        font-size: 0.65rem;
+    }
+    .terminal {
+        width: 100%;
+        height: 97vh;
+        min-height: 220px;
+        border-radius: 2px;
+        font-size: 0.65rem;
+    }
+    .terminal.maximized {
+        width: calc(100% - 4px);
+        height: calc(100% - 4px);
+        top: 2px;
+        left: 2px;
+    }
+    .terminal-header { padding: 2px 4px; }
+    .terminal-title { font-size: 0.55rem; }
+    .terminal-button { width: 5px; height: 5px; }
+    .terminal-body { 
+        padding: 4px; 
+        font-size: 0.65rem;
+    }
+    .prompt-user, .prompt-input, p { font-size: 0.65rem; }
+    .hidden-input { 
+        height: 0.65em; 
+        font-size: 0.65rem;
+    }
+    .banner-logo { width: 45px; }
+    .command-output {
+        line-height: 1.05;
+        white-space: normal;
+        word-break: break-all;
+    }
+    .margin { margin-left: 4px; }
+    .terminal-body::-webkit-scrollbar { width: 3px; }
+    .terminal-body::-webkit-scrollbar-thumb { border-radius: 1px; }
+    .resize-handle { width: 5px; height: 5px; }
+    .blog-content { font-size: 0.65rem; }
+    .blog-content h1 { font-size: 1.1rem; }
+    .blog-content h2 { font-size: 0.95rem; }
+    .blog-content h3 { font-size: 0.85rem; }
+    .blog-content h4, .blog-content h5, .blog-content h6 { font-size: 0.75rem; }
+    .blog-content p { font-size: 0.65rem; }
+    .blog-content li { font-size: 0.65rem; }
+    .blog-content code { font-size: 0.55rem; }
+    .blog-content img { max-width: 100%; }
+}
+    </style>
+</head>
+<body data-theme="dark">
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5XL9QV7R"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.0.12/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.1/purify.min.js"></script>
+    <script>
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+
+        function filledCell(cell) {
+            return cell !== '' && cell != null;
+        }
+
+        function loadFileData(filename) {
+            if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+                try {
+                    var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                    var firstSheetName = workbook.SheetNames[0];
+                    var worksheet = workbook.Sheets[firstSheetName];
+                    var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                    var filteredData = jsonData.filter(row => row.some(filledCell));
+                    var headerRowIndex = filteredData.findIndex((row, index) =>
+                        row.filter(filledCell).length >= (filteredData[index + 1]?.filter(filledCell).length || 0)
+                    );
+                    if (headerRowIndex === -1 || headerRowIndex > 25) {
+                        headerRowIndex = 0;
+                    }
+                    var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+                    csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                    return csv;
+                } catch (e) {
+                    console.error(e);
+                    return "";
+                }
+            }
+            return gk_fileData[filename] || "";
+        }
+
+        const fileSystem = {
+            'home': {
+                'readme.txt': 'Welcome to the terminal emulator!',
+                'data.xlsx': 'base64_encoded_xlsx_data',
+                'projects': {
+                    'project1': 'Project 1 description',
+                    'project2': 'Project 2 description'
+                }
+            }
+        };
+
+        const twitter = "https://www.twitter.com/arisksec/";
+        const password = "Return";
+        const github = "https://github.com/arisksec/";
+        const email = 'mailto:me@arisksec.com';
+        const resume = "https://resume.aaryan.com.np/";
+        const youtube = "https://www.youtube.com";
+        const linkedin = "https://www.linkedin.com";
+        const instagram = "https://www.instagram.com";
+
+        const whois = [
+            "<br>",
+            "<strong>Greetings, I am Aryan!</strong>",
+            "I am an Application Security Researcher, Bug Bounty Hunter, Hacker, and Web Application Developer.",
+            "My work encompasses the creation of engaging open-source tools, alongside conducting meticulous",
+            "research into web and mobile application security techniques.",
+            "<br>",
+            "Throughout my professional career in security research, I have diligently documented my journey on",
+            "my blog, with the aspiration of enlightening the next generation of hackers and assisting them in",
+            "navigating the intricate realms of security technique development and computer science.",
+            "<br>",
+            "As my online presence expanded, it became evident that transitioning from application security",
+            "research to a full-time Bug Bounty Hunter was a necessary step – a decision I consider to be",
+            "among the most rewarding of my life.",
+            "<br>",
+            "<strong>Decoded w/ Aryan Aryal</strong> remains an ongoing project of mine, and something not widely known,",
+            "unless one is reading this, is that I also have a creative inclination.",
+            "<br>"
+        ];
+
+        const whoami = [
+            "<br>",
+            "The paradox of “Who am I?” is: we never know, but, we constantly find out.",
+            "<br>"
+        ];
+
+        const social = [
+            '<span class="color2">Social Media Links:</span>',
+            `<span class="command">twitter</span>        <a href="${twitter}" target="_blank">arisksec</a>`,
+            `<span class="command">github</span>         <a href="${github}" target="_blank">arisksec</a>`,
+            `<span class="command">blog</span>           <a href="#" class="blog-link">List blog posts</a>`,
+            `<span class="command">resume</span>         <a href="${resume}" target="_blank">arisksec</a>`
+        ];
+
+        const secret = [
+            "<br>",
+            '<span class="command">sudo</span>           Only use if you\'re admin',
+            "<br>"
+        ];
+
+        const projects = [
+            "<br>",
+            "Still curating... most projects are offline, on GitHub, or confidential.",
+            "<br>"
+        ];
+
+        const help = [
+            "<br>",
+            '<span class="color2">Info Commands:</span>',
+            '<span class="command">help</span>           Shows this menu',
+            '<span class="command">whois</span>          About Aryan',
+            '<span class="command">whoami</span>         About you',
+            '<span class="command">projects</span>       View projects',
+            "<br>",
+            '<span class="color2">Social Commands:</span>',
+            '<span class="command">social</span>         Social networks',
+            '<span class="command">email</span>          Email contact',
+            '<span class="command">twitter</span>        Open Twitter',
+            '<span class="command">linkedin</span>       Open LinkedIn',
+            '<span class="command">github</span>         Open GitHub',
+            '<span class="command">blog [post-slug]</span> List or view blog posts',
+            '<span class="command">resume</span>         Open resume',
+            "<br>",
+            '<span class="color2">Navigation:</span>',
+            '<span class="command">banner</span>         Show header',
+            '<span class="command">history</span>        Command history',
+            "<br>",
+            '<span class="color2">File System:</span>',
+            '<span class="command">ls</span>             List contents',
+            '<span class="command">cd</span>             Change directory',
+            '<span class="command">cat</span>            Show file content',
+            "<br>",
+            '<span class="color2">Terminal Mgmt:</span>',
+            '<span class="command">new</span>            New terminal',
+            '<span class="command">exit</span>           Close terminal',
+            '<span class="command">theme</span>          Toggle theme',
+            '<span class="command">secret</span>         Find password',
+            "<br>"
+        ];
+
+        const banner = [
+            '<img src="https://cdn.aryanaryal.com.np/626c6f672d617279616e/70686f746f73/6c6f676f73/123852.png" alt="Logo" class="banner-logo">',
+            `<span class="index">ARISKSEC © ${new Date().getFullYear()}</span>`,
+            '<span class="color2">Welcome to AriskSec where the web meets security, one terminal command at a time.</span>',
+            "<span class=\"color2\">For a list of available commands, type</span> <span class=\"command\">'blog'</span><span class=\"color2\">.</span>"
+        ];
+
+        let terminalCount = 0;
+        const terminals = new Map();
+        let currentPath = ['home'];
+
+        class Terminal {
+            constructor(id) {
+                this.id = id;
+                this.element = document.createElement('div');
+                this.element.className = 'terminal';
+                this.element.id = `terminal-${id}`;
+                this.element.style.left = `${50 + id * 20}px`;
+                this.element.style.top = `${50 + id * 20}px`;
+                this.element.style.zIndex = id;
+                this.element.setAttribute('role', 'application');
+                this.element.setAttribute('aria-label', 'Terminal Emulator');
+
+                this.element.innerHTML = `
+                    <div class="terminal-header">
+                        <div class="terminal-buttons">
+                            <div class="terminal-button button-close" role="button" aria-label="Close terminal"></div>
+                            <div class="terminal-button button-minimize" role="button" aria-label="Minimize terminal"></div>
+                            <div class="terminal-button button-maximize" role="button" aria-label="Maximize terminal"></div>
+                        </div>
+                        <div class="terminal-title">root@scan:~$</div>
+                    </div>
+                    <div class="terminal-body" role="log" aria-live="polite">
+                        <div class="before"></div>
+                        <div class="liner">
+                            <span class="prompt-user">root@scan:${currentPath.join('/')}$ </span>
+                            <span class="cursor"></span>
+                            <span class="prompt-input typer"></span>
+                            <textarea class="hidden-input texter" aria-label="Command input"></textarea>
+                        </div>
+                    </div>
+                    <div class="resize-handle" role="button" aria-label="Resize terminal"></div>
+                `;
+
+                this.before = this.element.querySelector('.before');
+                this.liner = this.element.querySelector('.liner');
+                this.command = this.element.querySelector('.typer');
+                this.textarea = this.element.querySelector('.texter');
+                this.terminalBody = this.element.querySelector('.terminal-body');
+                this.cursorElement = this.element.querySelector('.cursor');
+                this.commands = JSON.parse(localStorage.getItem(`terminal-${this.id}-history`)) || [];
+                this.commandHistoryIndex = this.commands.length;
+                this.isMinimized = false;
+                this.isMaximized = false;
+                this.pw = false;
+                this.pwd = false;
+
+                document.body.appendChild(this.element);
+                this.setup();
+                this.loopLines(banner, "", 80);
+                this.textarea.focus();
+            }
+
+            setup() {
+                const header = this.element.querySelector('.terminal-header');
+                let isDragging = false;
+                let currentX, currentY;
+
+                header.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    if (this.isMaximized) return;
+                    isDragging = true;
+                    currentX = e.clientX - parseInt(this.element.style.left || '0');
+                    currentY = e.clientY - parseInt(this.element.style.top || '0');
+                    this.bringToFront();
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (isDragging) {
+                        let newX = e.clientX - currentX;
+                        let newY = e.clientY - currentY;
+                        const maxX = window.innerWidth - this.element.offsetWidth - 15;
+                        const maxY = window.innerHeight - this.element.offsetHeight - 15;
+                        newX = Math.max(15, Math.min(newX, maxX));
+                        newY = Math.max(15, Math.min(newY, maxY));
+                        this.element.style.left = `${newX}px`;
+                        this.element.style.top = `${newY}px`;
+                    }
+                });
+
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                });
+
+                header.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    if (this.isMaximized) return;
+                    isDragging = true;
+                    const touch = e.touches[0];
+                    currentX = touch.clientX - parseInt(this.element.style.left || '0');
+                    currentY = touch.clientY - parseInt(this.element.style.top || '0');
+                    this.bringToFront();
+                });
+
+                document.addEventListener('touchmove', (e) => {
+                    if (isDragging) {
+                        const touch = e.touches[0];
+                        let newX = touch.clientX - currentX;
+                        let newY = touch.clientY - currentY;
+                        const maxX = window.innerWidth - this.element.offsetWidth - 15;
+                        const maxY = window.innerHeight - this.element.offsetHeight - 15;
+                        newX = Math.max(15, Math.min(newX, maxX));
+                        newY = Math.max(15, Math.min(newY, maxY));
+                        this.element.style.left = `${newX}px`;
+                        this.element.style.top = `${newY}px`;
+                    }
+                });
+
+                document.addEventListener('touchend', () => {
+                    isDragging = false;
+                });
+
+                this.element.addEventListener('mousedown', () => this.bringToFront());
+                this.element.addEventListener('touchstart', () => this.bringToFront());
+
+                this.element.querySelector('.button-close').addEventListener('click', () => this.close());
+                this.element.querySelector('.button-minimize').addEventListener('click', () => {
+                    this.isMinimized = !this.isMinimized;
+                    this.element.classList.toggle('minimized', this.isMinimized);
+                    if (!this.isMinimized) this.textarea.focus();
+                });
+                this.element.querySelector('.button-maximize').addEventListener('click', () => {
+                    this.isMaximized = !this.isMaximized;
+                    this.element.classList.toggle('maximized', this.isMaximized);
+                    if (!this.isMaximized) {
+                        this.element.style.left = `${50 + this.id * 20}px`;
+                        this.element.style.top = `${50 + this.id * 20}px`;
+                        this.element.style.width = '';
+                        this.element.style.height = '';
+                    }
+                    this.textarea.focus();
+                });
+
+                const resizeHandle = this.element.querySelector('.resize-handle');
+                let isResizing = false;
+                let startX, startY, startWidth, startHeight;
+
+                resizeHandle.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    if (this.isMaximized) return;
+                    isResizing = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    startWidth = this.element.offsetWidth;
+                    startHeight = this.element.offsetHeight;
+                    this.bringToFront();
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (isResizing) {
+                        const newWidth = startWidth + (e.clientX - startX);
+                        const newHeight = startHeight + (e.clientY - startY);
+                        const minWidth = 200;
+                        const minHeight = 150;
+                        const maxWidth = window.innerWidth - parseInt(this.element.style.left || '0') - 15;
+                        const maxHeight = window.innerHeight - parseInt(this.element.style.top || '0') - 15;
+
+                        this.element.style.width = `${Math.max(minWidth, Math.min(newWidth, maxWidth))}px`;
+                        this.element.style.height = `${Math.max(minHeight, Math.min(newHeight, maxHeight))}px`;
+                    }
+                });
+
+                document.addEventListener('mouseup', () => {
+                    isResizing = false;
+                });
+
+                resizeHandle.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    if (this.isMaximized) return;
+                    isResizing = true;
+                    const touch = e.touches[0];
+                    startX = touch.clientX;
+                    startY = touch.clientY;
+                    startWidth = this.element.offsetWidth;
+                    startHeight = this.element.offsetHeight;
+                    this.bringToFront();
+                });
+
+                document.addEventListener('touchmove', (e) => {
+                    if (isResizing) {
+                        const touch = e.touches[0];
+                        const newWidth = startWidth + (touch.clientX - startX);
+                        const newHeight = startHeight + (touch.clientY - startY);
+                        const minWidth = 200;
+                        const minHeight = 150;
+                        const maxWidth = window.innerWidth - parseInt(this.element.style.left || '0') - 15;
+                        const maxHeight = window.innerHeight - parseInt(this.element.style.top || '0') - 15;
+
+                        this.element.style.width = `${Math.max(minWidth, Math.min(newWidth, maxWidth))}px`;
+                        this.element.style.height = `${Math.max(minHeight, Math.min(newHeight, maxHeight))}px`;
+                    }
+                });
+
+                document.addEventListener('touchend', () => {
+                    isResizing = false;
+                });
+
+                this.textarea.addEventListener('input', () => {
+                    if (!this.pw) {
+                        this.command.textContent = this.textarea.value;
+                    } else {
+                        this.command.textContent = '*'.repeat(this.textarea.value.length);
+                    }
+                    this.cursorElement.style.visibility = this.textarea.value.length > 0 ? 'hidden' : 'visible';
+                });
+
+                this.textarea.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const commandText = this.textarea.value;
+                        if (commandText) {
+                            this.commands.push(commandText);
+                            localStorage.setItem(`terminal-${this.id}-history`, JSON.stringify(this.commands));
+                            this.commandHistoryIndex = this.commands.length;
+                            this.addLine(`root@scan:${currentPath.join('/')}$ ${commandText}`, "no-animation", 0);
+                            this.executeCommand(commandText.toLowerCase());
+                            if (!this.pw) {
+                                this.command.textContent = "";
+                                this.textarea.value = "";
+                                this.cursorElement.style.visibility = 'visible';
+                            }
+                        }
+                    } else if (e.key === 'ArrowUp' && this.commandHistoryIndex > 0) {
+                        e.preventDefault();
+                        this.commandHistoryIndex--;
+                        this.textarea.value = this.commands[this.commandHistoryIndex] || "";
+                        this.command.textContent = this.textarea.value;
+                        this.cursorElement.style.visibility = this.textarea.value.length > 0 ? 'hidden' : 'visible';
+                    } else if (e.key === 'ArrowDown' && this.commandHistoryIndex < this.commands.length) {
+                        e.preventDefault();
+                        this.commandHistoryIndex++;
+                        if (this.commandHistoryIndex === this.commands.length) {
+                            this.textarea.value = "";
+                            this.command.textContent = "";
+                        } else {
+                            this.textarea.value = this.commands[this.commandHistoryIndex];
+                            this.command.textContent = this.textarea.value;
+                        }
+                        this.cursorElement.style.visibility = this.textarea.value.length > 0 ? 'hidden' : 'visible';
+                    }
+                    this.terminalBody.scrollTop = this.terminalBody.scrollHeight;
+                });
+
+                this.textarea.addEventListener('keyup', (e) => {
+                    if (e.key === 'Enter' && this.pw) {
+                        if (this.textarea.value === password) {
+                            this.pwd = true;
+                        }
+                        if (this.pwd) {
+                            this.loopLines(secret, "color2 margin", 120);
+                            this.command.textContent = "";
+                            this.textarea.value = "";
+                            this.pwd = false;
+                            this.pw = false;
+                            this.liner.classList.remove("password");
+                            this.cursorElement.style.visibility = 'visible';
+                        } else {
+                            this.addLine("Wrong password", "error margin", 0);
+                            this.command.textContent = "";
+                            this.textarea.value = "";
+                            this.pw = false;
+                            this.liner.classList.remove("password");
+                            this.cursorElement.style.visibility = 'visible';
+                        }
+                    }
+                });
+
+                this.terminalBody.addEventListener('click', () => this.textarea.focus());
+            }
+
+            bringToFront() {
+                const maxZ = Math.max(...Array.from(document.querySelectorAll('.terminal')).map(t => parseInt(t.style.zIndex || '0')));
+                this.element.style.zIndex = maxZ + 1;
+            }
+
+            close() {
+                terminals.delete(this.id);
+                this.element.remove();
+                if (terminals.size === 0) {
+                    new Terminal(terminalCount++);
+                }
+            }
+
+            addLine(text, style, time) {
+                let t = "";
+                for (let i = 0; i < text.length; i++) {
+                    if (text.charAt(i) === " " && text.charAt(i + 1) === " ") {
+                        t += "  ";
+                        i++;
+                    } else {
+                        t += text.charAt(i);
+                    }
+                }
+                setTimeout(() => {
+                    const next = document.createElement("p");
+                    next.innerHTML = t;
+                    next.className = `command-output ${style}`;
+                    this.before.parentNode.insertBefore(next, this.before);
+                    this.terminalBody.scrollTop = this.terminalBody.scrollHeight;
+                }, time);
+            }
+
+            loopLines(lines, style, time) {
+                lines.forEach((item, index) => {
+                    this.addLine(item, style, index * time);
+                });
+            }
+
+            async executeCommand(cmd) {
+                const [command, ...args] = cmd.trim().split(' ');
+                switch (command) {
+                    case "help":
+                        this.loopLines(help, "color2 margin", 80);
+                        break;
+                    case "whois":
+                        this.loopLines(whois, "color2 margin", 80);
+                        break;
+                    case "whoami":
+                        this.loopLines(whoami, "color2 margin", 80);
+                        break;
+                    case "video":
+                        this.addLine("Opening YouTube...", "color2 margin", 80);
+                        this.newTab(youtube);
+                        break;
+                    case "sudo":
+                        this.addLine("Oh no, you're not admin...", "color2 margin", 80);
+                        setTimeout(() => window.open('https://www.youtube.com/watch?v=sjpWpFLXxso'), 1000);
+                        break;
+                    case "social":
+                        this.loopLines(social, "color2 margin", 80);
+                        break;
+                    case "secret":
+                        this.liner.classList.add("password");
+                        this.pw = true;
+                        break;
+                    case "projects":
+                        this.loopLines(projects, "color2 margin", 80);
+                        break;
+                    case "password":
+                        this.addLine("Lol! You're joking, right? You're gonna have to try harder than that!😂", "error margin", 100);
+                        break;
+                    case "history":
+                        this.addLine("<br>", "", 0);
+                        this.loopLines(this.commands, "color2 margin", 80);
+                        this.addLine("<br>", "command", 80 * this.commands.length + 50);
+                        break;
+                    case "email":
+                        this.addLine(`Opening mailto: <a href="${email}">me@arisksec.com</a>...`, "color2 margin", 80);
+                        this.newTab(email);
+                        break;
+                    case "banner":
+                        this.loopLines(banner, "", 80);
+                        break;
+                    case "resume":
+                        this.addLine("Opening Resume...", "color2 margin", 80);
+                        this.newTab(resume);
+                        break;
+                    case "twitter":
+                        this.addLine("Opening Twitter...", "color2 margin", 80);
+                        this.newTab(twitter);
+                        break;
+                    case "linkedin":
+                        this.addLine("Opening LinkedIn...", "color2 margin", 80);
+                        this.newTab(linkedin);
+                        break;
+                    case "github":
+                        this.addLine("Opening GitHub...", "color2 margin", 80);
+                        this.newTab(github);
+                        break;
+                    case "blog":
+                        await this.handleBlogCommand(args);
+                        break;
+                    case "new":
+                        new Terminal(terminalCount++);
+                        break;
+                    case "exit":
+                        this.close();
+                        break;
+                    case "theme":
+                        const currentTheme = document.body.getAttribute('data-theme');
+                        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                        document.body.setAttribute('data-theme', newTheme);
+                        this.addLine(`Theme switched to ${newTheme}`, "color2 margin", 0);
+                        break;
+                    case "ls":
+                        const dir = this.getCurrentDir();
+                        const contents = Object.keys(dir).map(item => `<span class="${typeof dir[item] === 'object' ? 'color2' : 'white'}">${item}</span>`);
+                        this.loopLines(contents.length ? contents : ['<span class="white">dir empty</span>'], "white margin", 80);
+                        break;
+                    case "cd":
+                        if (args.length === 0) {
+                            currentPath = ['home'];
+                        } else {
+                            const target = args[0];
+                            if (target === '..') {
+                                if (currentPath.length > 1) currentPath.pop();
+                            } else {
+                                const dir = this.getCurrentDir();
+                                if (dir[target] && typeof dir[target] === 'object') {
+                                    currentPath.push(target);
+                                } else {
+                                    this.addLine(`cd: ${target}: No such directory`, "error margin", 0);
+                                    return;
+                                }
+                            }
+                        }
+                        this.updatePrompt();
+                        break;
+                    case "cat":
+                        if (args.length === 0) {
+                            this.addLine("cat: missing file operand", "error margin", 0);
+                        } else {
+                            const file = args[0];
+                            const dir = this.getCurrentDir();
+                            if (typeof dir[file] === 'string') {
+                                gk_isXlsx = file.endsWith('.xlsx');
+                                if (gk_isXlsx) {
+                                    gk_xlsxFileLookup[file] = true;
+                                    gk_fileData[file] = dir[file];
+                                    const content = loadFileData(file);
+                                    if (content) {
+                                        this.addLine(content, "white margin", 0);
+                                    } else {
+                                        this.addLine(`cat: ${file}: Error reading XLSX file`, "error margin", 0);
+                                    }
+                                } else {
+                                    this.addLine(dir[file], "white margin", 0);
+                                }
+                            } else {
+                                this.addLine(`cat: ${file}: No such file or is a directory`, "error margin", 0);
+                            }
+                        }
+                        break;
+                    default:
+                        this.addLine(`Command not found. For a list of commands, type <span class="command">help</span>.`, "error margin", 100);
+                        break;
+                }
+            }
+
+            async handleBlogCommand(args) {
+                const baseUrl = 'https://cdn.aryanaryal.com.np/626c6f672d617279616e/markdown/';
+                const postsPerPage = 10; // Number of posts to display per page
+                try {
+                    const response = await fetch(`${baseUrl}blogs.json`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    const posts = await response.json();
+                    if (!Array.isArray(posts) || posts.length === 0) {
+                        this.addLine("No blog posts found.", "error margin", 0);
+                        return;
+                    }
+
+                    if (args.length > 0) {
+                        // Handle specific blog post request or pagination
+                        const arg = args[0].toLowerCase();
+                        if (arg.match(/^\d+$/)) {
+                            // Handle pagination
+                            const page = parseInt(arg, 10);
+                            if (page < 1) {
+                                this.addLine("Invalid page number. Page numbers start at 1.", "error margin", 0);
+                                return;
+                            }
+                            const totalPages = Math.ceil(posts.length / postsPerPage);
+                            if (page > totalPages) {
+                                this.addLine(`Page ${page} does not exist. There are ${totalPages} pages.`, "error margin", 0);
+                                return;
+                            }
+                            const start = (page - 1) * postsPerPage;
+                            const end = start + postsPerPage;
+                            const pagePosts = posts.slice(start, end);
+                            const blogCommands = [
+                                "<br>",
+                                `<span class="color2">Blog Commands (Page ${page} of ${totalPages}):</span>`,
+                                `<span class="command">blog [post-slug]</span> List or view blog posts`,
+                                ...pagePosts.map(post => {
+                                    const slug = post.slug || post.url.split('/').pop().replace('.md', '');
+                                    const description = post.description || 'Introduction to Web Security';
+                                    
+
+                                    return `<span class="command">blog ${slug}</span> ${description}`;
+                                }),
+                                `<span class="color2">Use 'blog [number]' to view other pages</span>`,
+                                "<br>"
+                            ];
+                            this.loopLines(blogCommands, "color2 margin", 80);
+                        } else {
+                            // Handle specific blog post
+                            const post = posts.find(p => p.slug?.toLowerCase() === arg || p.url.includes(arg));
+                            if (post) {
+                                await this.displayBlogPost(post.url, post.title);
+                            } else {
+                                this.addLine(`blog: ${arg}: No such blog post`, "error margin", 0);
+                            }
+                        }
+                    } else {
+                        // Display first page of blog commands
+                        const totalPages = Math.ceil(posts.length / postsPerPage);
+                        const pagePosts = posts.slice(0, postsPerPage);
+                        const blogCommands = [
+                            "<br>",
+                            `<span class="color2">Blog Commands:</span>`,
+                            `<span class="command">blog [post-slug]</span> List or view blog posts`,
+                            
+                            "<br>",
+                            ...pagePosts.map(post => {
+                                const slug = post.slug || post.url.split('/').pop().replace('.md', '');
+                                const description = post.description || '';
+                                
+                                return `<span class="command"> ${slug}</span>       ${description}`;
+                            }),
+                            
+                            "<br>"
+                        ];
+                        this.loopLines(blogCommands, "color2 margin", 80);
+                    }
+                } catch (error) {
+                    this.addLine(`Error fetching blog posts: ${error.message}`, "error margin", 0);
+                }
+            }
+
+            async displayBlogPost(url, title) {
+                try {
+                    this.addLine(`Loading blog post "${title}"...`, "color2 margin", 0);
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    const markdown = await response.text();
+                    const htmlContent = DOMPurify.sanitize(marked.parse(markdown));
+                    const styledHtml = `<div class="blog-content" style="color: var(--text); font-family: inherit; white-space: pre-wrap; overflow-wrap: break-word;">${htmlContent}</div>`;
+                    this.addLine(styledHtml, "white margin", 0);
+                } catch (error) {
+                    this.addLine(`Error loading blog post: ${error.message}`, "error margin", 0);
+                }
+            }
+
+            getCurrentDir() {
+                let dir = fileSystem;
+                for (const part of currentPath) {
+                    dir = dir[part];
+                }
+                return dir;
+            }
+
+            updatePrompt() {
+                this.element.querySelector('.prompt-user').textContent = `root@scan:${currentPath.join('/')}$ `;
+            }
+
+            newTab(link) {
+                setTimeout(() => window.open(link, "_blank"), 500);
+            }
+        }
+
+        terminals.set(terminalCount, new Terminal(terminalCount++));
+
+        window.addEventListener('error', (e) => {
+            console.error('Script Error:', e.message);
+            terminals.forEach(term => term.addLine(`Error: ${e.message}`, "error margin", 0));
+        });
+
+        window.addEventListener('resize', () => {
+            terminals.forEach(term => {
+                if (!term.isMaximized) {
+                    const maxWidth = window.innerWidth - parseInt(term.element.style.left || '0') - 15;
+                    const maxHeight = window.innerHeight - parseInt(term.element.style.top || '0') - 15;
+                    term.element.style.width = `${Math.min(term.element.offsetWidth, maxWidth)}px`;
+                    term.element.style.height = `${Math.min(term.element.offsetHeight, maxHeight)}px`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
